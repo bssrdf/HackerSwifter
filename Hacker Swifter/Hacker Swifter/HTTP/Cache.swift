@@ -12,7 +12,7 @@ private let _Cache = Cache()
 private let _MemoryCache = MemoryCache()
 private let _DiskCache = DiskCache()
 
-public typealias cacheCompletion = (AnyObject!) -> Void
+public typealias cacheCompletion = (AnyObject?) -> Void
 
 open class Cache {
 
@@ -39,15 +39,20 @@ open class Cache {
         }
     }
     
-    open func objectForKey(_ key: String, completion: cacheCompletion) {
+    open func objectForKey(_ key: String, completion: @escaping cacheCompletion) {
+        
         MemoryCache.sharedMemoryCache.objectForKey(key, completion: {(object: AnyObject!) in
             if let realObject: AnyObject = object {
+               
                 completion(realObject)
             }
             else {
+                
                 DiskCache.sharedDiskCache.objectForKey(key, completion: {(object: AnyObject!) in
+                    
                     completion(object)
                 })
+                
             }
         })
     }
@@ -82,6 +87,7 @@ open class DiskCache: Cache {
                     } catch _ {
                     }
                 }
+           // print("cachPath = "+cachePath)
             return cachePath
         }
     }
@@ -105,7 +111,7 @@ open class DiskCache: Cache {
         return FileManager.default.fileExists(atPath: fullPath(key))
     }
     
-    open func objectForKey(_ key: String, completion: @escaping cacheCompletion) {
+    open override func objectForKey(_ key: String, completion: @escaping cacheCompletion) {
         if (self.objectExist(key)) {
             DispatchQueue.global(qos: self.priority).async(execute: { ()->() in
                 let object: AnyObject! =  NSKeyedUnarchiver.unarchiveObject(withFile: self.fullPath(key)) as AnyObject!
@@ -115,6 +121,7 @@ open class DiskCache: Cache {
                 })
         }
         else {
+            
             completion(nil)
         }
     }
@@ -160,7 +167,8 @@ open class MemoryCache: Cache {
         return self.memoryCache.object(forKey: key as AnyObject)
     }
     
-    open override func objectForKey(_ key: String, completion: cacheCompletion)  {
+    open override func objectForKey(_ key: String, completion: @escaping cacheCompletion) {
+        
         completion(self.memoryCache.object(forKey: key as AnyObject))
     }
     

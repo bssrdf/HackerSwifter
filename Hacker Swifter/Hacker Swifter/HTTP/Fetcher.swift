@@ -18,8 +18,8 @@ open class Fetcher {
     fileprivate let session = URLSession.shared
     
     public typealias FetchCompletion = (_ object: AnyObject?, _ error: ResponseError?, _ local: Bool) -> Void
-    public typealias FetchParsing = (_ html: String?) -> AnyObject!
-    public typealias FetchParsingAPI = (_ json: AnyObject) -> AnyObject!
+    public typealias FetchParsing = (_ html: String?) -> AnyObject?
+    public typealias FetchParsingAPI = (_ json: AnyObject) -> AnyObject?
     
     public enum ResponseError: String {
         case NoConnection = "You are not connected to the internet"
@@ -42,8 +42,9 @@ open class Fetcher {
     }
     
     class func Fetch(_ ressource: String, parsing: @escaping FetchParsing, completion: @escaping FetchCompletion) {
-    
+        
         let cacheKey = Cache.generateCacheKey(ressource)
+        
         Cache.sharedCache.objectForKey(cacheKey, completion: {(object: AnyObject!) in
             if let realObject: AnyObject = object {
                 completion(realObject, nil, true)
@@ -51,6 +52,7 @@ open class Fetcher {
         })
         
         let path = _Fetcher.baseURL + ressource
+         print(path)
         let task = _Fetcher.session.dataTask(with: URL(string: path)! , completionHandler: {(data: Data?, response, error: Error?) in
             if !(error != nil) {
                 if let realData = data {

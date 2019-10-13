@@ -66,10 +66,21 @@ class PostTests: XCTestCase {
         Post.fetch(.Top, page:1, completion: {(posts: [Post]!, error: Fetcher.ResponseError!, local: Bool) in
             if (!local) {
                 postsPage1 = posts
+                print(postsPage1.count)
+                for p in postsPage1 {
+                    if let title = p.title {
+                        print(title)
+                    }
+                    if let url = p.url {
+                        print(url.absoluteString)
+                    }
+                }
+                
                 XCTAssertTrue(posts!.count > 1, "page 1 posts should contain post")
                 Post.fetch(.Top, page:2, completion: {(posts: [Post]!, error: Fetcher.ResponseError!, local: Bool) in
                     if (!local) {
                         postsPage2 = posts
+                        print(postsPage2.count)
                         XCTAssertTrue(posts!.count > 1, "page 2 posts should contain post")
                         XCTAssertNotEqual(postsPage1[0], postsPage2[0], "page 1 and two have the same content")
                         XCTAssertNotEqual(postsPage1[1], postsPage2[1], "page 1 and two have the same content")
@@ -79,6 +90,7 @@ class PostTests: XCTestCase {
                     })
             }
             })
+        
         self.waitForExpectations(timeout: 10.0, handler: nil)
     }
     
@@ -124,9 +136,9 @@ class PostTests: XCTestCase {
         let expectation = self.expectation(description: "fetch post")
         Post.fetchPost { (post, error, local) -> Void in
             if (!local) {
-                XCTAssertTrue(post.count > 1, "API response should countain Post")
-                Post.fetchPost(post[0], completion: { (post, error, local) -> Void in
-                    XCTAssertTrue(post.title?.utf8.count > 0, "Title content should not be empty")
+                XCTAssertTrue(post?.count > 1, "API response should countain Post")
+                Post.fetchPost(post![0], completion: { (post, error, local) -> Void in
+                    XCTAssertTrue(post?.title?.utf8.count > 0, "Title content should not be empty")
                     expectation.fulfill()
                 })
             }

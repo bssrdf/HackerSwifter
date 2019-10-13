@@ -114,7 +114,10 @@ public extension Comment {
 internal extension Comment {
     
     internal class func parseCollectionHTML(_ html: String, withType type: Post.PostFilter) -> [Comment] {
-        var components = html.components(separatedBy: "<tr><td class='ind'><img src=\"s.gif\"")
+        //print(html)
+        var components = html.components(separatedBy: "<tr>    <td class='ind'><img src=\"s.gif\"")
+        
+        //print("components : \(components.count)")
         var comments: [Comment] = []
         if (components.count > 0) {
             if (type == Post.PostFilter.Ask) {
@@ -141,7 +144,8 @@ internal extension Comment {
             var index = 0
             
             for component in components {
-                if index != 0 && index != components.count - 1 {
+                //if index != 0 && index != components.count - 1 {
+                if index != 0 {
                     comments.append(Comment(html: component, type: type))
                 }
                 index += 1
@@ -152,7 +156,6 @@ internal extension Comment {
     
     internal func parseHTML(_ html: String, withType type: Post.PostFilter) {
         let scanner = Scanner(string: html)
-        
         let level = scanner.scanTag("height=\"1\" width=\"", endTag: ">")
         if let unwrappedLevel = Int(level.substring(to: level.characters.index(level.startIndex, offsetBy: level.characters.count - 1))) {
             self.depth = unwrappedLevel / 40
@@ -160,23 +163,33 @@ internal extension Comment {
             self.depth = 0
         }
         
-        let username = scanner.scanTag("<a href=\"user?id=", endTag: "\">")
+        let username = scanner.scanTag("<a href=\"user?id=", endTag: "\"")
         self.username = username.utf16.count > 0 ? username : "[deleted]"
         self.commentId = scanner.scanTag("<a href=\"item?id=", endTag: "\">")
         self.prettyTime = scanner.scanTag(">", endTag: "</a>")
-        
+    
+        //print(html)
         if (html.range(of: "[deleted]")?.lowerBound != nil) {
             self.text = "[deleted]"
         } else {
-            let textTemp = scanner.scanTag("<font color=", endTag: "</font>") as String
-            if (textTemp.characters.count>0) {
-                self.text = String.stringByRemovingHTMLEntities(textTemp.substring(from: textTemp.characters.index(textTemp.startIndex, offsetBy: 10)))
+            //let textTemp = scanner.scanTag("<font color=", endTag: "</font>") as String
+            let textTemp = scanner.scanTag("<span class=\"commtext c00\">", endTag: "</span>") as String
+            let textTempOther = scanner.scanTag("<span class=\"commtext c5a\">", endTag: "</span>") as String
+            //print("temptext length: \(textTemp.count)")
+            //print("temptextother length: \(textTempOther.count)")
+            if (textTemp.count>0) {
+                //self.text = String.stringByRemovingHTMLEntities(textTemp.substring(from: textTemp.characters.index(textTemp.startIndex, offsetBy: 10)))
+                self.text = String.stringByRemovingHTMLEntities(textTemp)
+            } else if (textTempOther.count>0){
+                self.text = String.stringByRemovingHTMLEntities(textTempOther)
             }
             else {
                 self.text = ""
             }
         }
-        
+        //if let comment_text = self.text{
+        //  print("user comments : "+comment_text)
+        //}
         //LOL, it whould always work, as I strip a Hex color, which is always the same length
         
         self.replyURLString = scanner.scanTag("<font size=1><u><a href=\"", endTag: "\">reply")

@@ -49,12 +49,24 @@ class CommentTests: XCTestCase {
         let expectation = self.expectation(description: "fetch comments for post")
 
         let post = Post()
-        post.postId = "8255637"
+        post.postId = "21233837"
         post.type = Post.PostFilter.Default
+        
+        var getcomments:[Comment] = []
 
         Comment.fetch(forPost: post, completion: {(comments: [Comment]!, error: Fetcher.ResponseError!, local: Bool) in
 
             if (!local) {
+                getcomments = comments
+                //print(getcomments.count)
+                for p in getcomments {
+                    if let user = p.username {
+                        print(user)
+                    }
+                    if let text = p.text {
+                        print(text)
+                    }
+                }
                 XCTAssertTrue(comments!.count > 0, "comments should not be empty")
                 expectation.fulfill()
             }
